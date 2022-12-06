@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<title>Verify that moving a video element to a new document, still plays it normally</title>
+<script src="../resources/testharness.js"></script>
+<script src="../resources/testharnessreport.js"></script>
+<video></video>
+<iframe></iframe>
+<script>
+    async_test(function(t) {
+        var video = document.querySelector('video');
+        video.src = "content/test.ogv";
+        video.onloadeddata = this.step_func_done(function() {
+            video.onloadeddata = null;
+            assert_true(video.networkState == video.NETWORK_IDLE || video.networkState == video.NETWORK_LOADING);
+            assert_greater_than(video.readyState, video.HAVE_METADATA);
+            // Move the video element to iframe document from
+            // main document and verify that it plays properly
+            document.querySelector('iframe').contentDocument.body.appendChild(video);
+            assert_true(video.networkState == video.NETWORK_IDLE || video.networkState == video.NETWORK_LOADING);
+            assert_greater_than(video.readyState, video.HAVE_METADATA);
+        });
+    });
+</script>

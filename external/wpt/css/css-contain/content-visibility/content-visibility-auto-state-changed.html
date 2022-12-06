@@ -1,0 +1,63 @@
+<!doctype HTML>
+<html>
+<meta charset="utf8">
+<title>Content Visibility: ContentVisibilityAutoStateChange event.</title>
+<link rel="author" title="Vladimir Levin" href="mailto:vmpstr@chromium.org">
+<link rel="help" href="https://drafts.csswg.org/css-contain/#content-visibility">
+<meta name="timeout" content="long">
+<meta name="assert" content="ContentVisibilityAutoStateChange fires when things enter/exit viewport">
+
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="/resources/testdriver.js"></script>
+<script src="/resources/testdriver-vendor.js"></script>
+<script src="/common/utils.js"></script>
+<script src="/scroll-to-text-fragment/stash.js"></script>
+
+<style>
+.spacer {
+  height: 3000px;
+}
+.auto { content-visibility: auto; }
+</style>
+
+<div id=top class=auto></div>
+<div class=spacer></div>
+<div id=middle></div>
+<div class=spacer></div>
+<div id=bottom class=auto></div>
+
+<script>
+promise_test(t => new Promise(async (resolve, reject) => {
+  await new Promise((waited, _) => {
+    requestAnimationFrame(() => requestAnimationFrame(waited));
+  });
+
+  top.addEventListener("contentvisibilityautostatechange", (e) => {
+    if (e.skipped)
+      resolve();
+    else
+      reject();
+  });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    middle.scrollIntoView();
+  }));
+}), "ContentVisibilityAutoStateChange fires when skipped");
+
+promise_test(t => new Promise(async (resolve, reject) => {
+  await new Promise((waited, _) => {
+    requestAnimationFrame(() => requestAnimationFrame(waited));
+  });
+
+  bottom.addEventListener("contentvisibilityautostatechange", (e) => {
+    if (!e.skipped)
+      resolve();
+    else
+      reject();
+  });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bottom.scrollIntoView();
+  }));
+}), "ContentVisibilityAutoStateChange fires when not skipped");
+</script>
+
